@@ -9,7 +9,7 @@ import java.io.PrintStream;
  * Also knows that if output is System.out or System.err, it should not be closed when done.
  */
 
-public class OutputStreamDestination<T extends Enum<T> & LogMessage> implements Destination<T> {
+public class OutputStreamDestination implements Destination {
     private final PrintStream output;
     private final StackTraceProcessor stackTraceProcessor;
 
@@ -24,7 +24,7 @@ public class OutputStreamDestination<T extends Enum<T> & LogMessage> implements 
     }
 
     @Override
-    public void publish(LogicalLogRecord<T> record) throws Exception {
+    public void publish(LogicalLogRecord record) throws Exception {
         output.println(record.format(stackTraceProcessor));
     }
 

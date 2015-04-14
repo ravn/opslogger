@@ -35,17 +35,17 @@ public class AsyncOpsLoggerTest {
 
     public static final int EXPECTED_MAX_BATCH_SIZE = AsyncOpsLogger.MAX_BATCH_SIZE;
     private Clock fixedClock = Clock.fixed(Instant.parse("2014-02-01T14:57:12.500Z"), ZoneOffset.UTC);
-    @Mock private Destination<TestMessages> destination;
+    @Mock private Destination destination;
     @Mock private Supplier<Map<String,String>> correlationIdSupplier;
     @Mock private Consumer<Throwable> exceptionConsumer;
-    @Mock private LinkedTransferQueue<Optional<LogicalLogRecord<TestMessages>>> transferQueue;
+    @Mock private LinkedTransferQueue<Optional<LogicalLogRecord>> transferQueue;
     @Mock private AsyncExecutor executor;
     @Mock private Future<?> processingThread;
 
-    @Captor private ArgumentCaptor<Optional<LogicalLogRecord<TestMessages>>> captor;
+    @Captor private ArgumentCaptor<Optional<LogicalLogRecord>> captor;
     @Captor private ArgumentCaptor<Runnable> runnableCaptor;
 
-    private OpsLogger<TestMessages> logger;
+    private OpsLoggerBase logger;
 
     @Before
     public void setup() {
@@ -53,7 +53,7 @@ public class AsyncOpsLoggerTest {
 
         when(executor.execute(runnableCaptor.capture())).thenAnswer((i) -> processingThread);
 
-        logger = new AsyncOpsLogger<>(fixedClock, correlationIdSupplier, destination, exceptionConsumer, transferQueue, executor);
+        logger = new AsyncOpsLogger(fixedClock, correlationIdSupplier, destination, exceptionConsumer, transferQueue, executor);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class AsyncOpsLoggerTest {
 
         verify(transferQueue).put(captor.capture());
 
-        LogicalLogRecord<TestMessages> record = captor.getValue().get();
+        LogicalLogRecord record = captor.getValue().get();
         assertEquals(fixedClock.instant(), record.getTimestamp());
         assertEquals(expectedCorrelationIds, record.getCorrelationIds());
         assertEquals(TestMessages.Bar, record.getMessage());
@@ -122,7 +122,7 @@ public class AsyncOpsLoggerTest {
 
         verify(transferQueue).put(captor.capture());
 
-        LogicalLogRecord<TestMessages> record = captor.getValue().get();
+        LogicalLogRecord record = captor.getValue().get();
         assertEquals(fixedClock.instant(), record.getTimestamp());
         assertEquals(expectedCorrelationIds, record.getCorrelationIds());
         assertEquals(TestMessages.Bar, record.getMessage());
@@ -182,7 +182,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldTakeBatchesOfUpTo100InALoopUntilItReceivesAnEmptyOptional() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(141).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(141).stream().map(Optional::of).collect(toList());
         messages.add(130, Optional.empty()); //add in the middle of the last block — loop should process all messages in the last batch, regardless of where the signal is
         setupTransferQueueExpectations(messages, 60, 40, 42);
 
@@ -201,7 +201,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldSubmitReceivedMessagesToTheDestinationInBatches() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(5).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(5).stream().map(Optional::of).collect(toList());
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 4, 2);
 
@@ -222,7 +222,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldExposeAnExceptionToTheHandlerAndContinueProcessing_givenAnException() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(2).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(2).stream().map(Optional::of).collect(toList());
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 1, 1, 1);
 
@@ -237,7 +237,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldSkipTheEntireBatch_whenAnExceptionIsThrownByBeginBatch() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(2).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(2).stream().map(Optional::of).collect(toList());
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 1, 2);
 
@@ -255,7 +255,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldCloseTheBatch_whenAnExceptionIsThrownPublishingABatchMember() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(1).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(1).stream().map(Optional::of).collect(toList());
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 1, 1);
 
@@ -270,7 +270,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldContinueProcessingTheBatch_whenAnExceptionIsThrownPublishingABatchMember() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(4).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(4).stream().map(Optional::of).collect(toList());
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 4, 1); //send close in a separate batch to stop an infinite loop when the test fails
 
@@ -285,7 +285,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldEndEvenIfABatchErrorOccursInTheLastBatch() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = buildMessages(1).stream().map(Optional::of).collect(toList());
+        List<Optional<LogicalLogRecord>> messages = buildMessages(1).stream().map(Optional::of).collect(toList());
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 2);
 
@@ -296,7 +296,7 @@ public class AsyncOpsLoggerTest {
 
     @Test
     public void processingThread_shouldNotBeginOrEndAnEmptyBatch() throws Exception {
-        List<Optional<LogicalLogRecord<TestMessages>>> messages = new ArrayList<>();
+        List<Optional<LogicalLogRecord>> messages = new ArrayList<>();
         messages.add(Optional.empty());
         setupTransferQueueExpectations(messages, 1);
 
@@ -305,7 +305,7 @@ public class AsyncOpsLoggerTest {
         verifyZeroInteractions(destination);
     }
 
-    private void setupTransferQueueExpectations(List<Optional<LogicalLogRecord<TestMessages>>> messages, int... batchSizes) throws Exception {
+    private void setupTransferQueueExpectations(List<Optional<LogicalLogRecord>> messages, int... batchSizes) throws Exception {
         int totalSize = IntStream.of(batchSizes)
                 .peek((i) -> assertTrue("A TransferQueue will never return more than asked for", i <= EXPECTED_MAX_BATCH_SIZE))
                 .sum();
@@ -319,8 +319,8 @@ public class AsyncOpsLoggerTest {
             solution: mock the takes calls first, and then the drainTo calls.
         */
 
-        List<Optional<LogicalLogRecord<TestMessages>>> takeCallResults = new ArrayList<>();
-        List<List<Optional<LogicalLogRecord<TestMessages>>>> drainCallResults = new ArrayList<>();
+        List<Optional<LogicalLogRecord>> takeCallResults = new ArrayList<>();
+        List<List<Optional<LogicalLogRecord>>> drainCallResults = new ArrayList<>();
         int positionSoFar = 0;
         for (int i : batchSizeList) {
             takeCallResults.add(messages.get(positionSoFar));
@@ -328,8 +328,8 @@ public class AsyncOpsLoggerTest {
             positionSoFar += i;
         }
 
-        OngoingStubbing<Optional<LogicalLogRecord<TestMessages>>> takeCall = when(transferQueue.take()).thenReturn(takeCallResults.get(0));
-        for (Optional<LogicalLogRecord<TestMessages>> takeResult : takeCallResults.subList(1, takeCallResults.size())) {
+        OngoingStubbing<Optional<LogicalLogRecord>> takeCall = when(transferQueue.take()).thenReturn(takeCallResults.get(0));
+        for (Optional<LogicalLogRecord> takeResult : takeCallResults.subList(1, takeCallResults.size())) {
             takeCall = takeCall.thenReturn(takeResult);
         }
 
@@ -339,7 +339,7 @@ public class AsyncOpsLoggerTest {
             assertThat("some sort of error in mock setup", drainCallResults.size(), is(takeCallResults.size()));
 
             @SuppressWarnings("unchecked")
-            List<Optional<LogicalLogRecord<TestMessages>>> collection = (List<Optional<LogicalLogRecord<TestMessages>>>) invocation.getArguments()[0];
+            List<Optional<LogicalLogRecord>> collection = (List<Optional<LogicalLogRecord>>) invocation.getArguments()[0];
             int batchSize = batchSizeList.get(0);
 
 
@@ -360,14 +360,14 @@ public class AsyncOpsLoggerTest {
         }
     }
 
-    private List<LogicalLogRecord<TestMessages>> buildMessages(int count) {
+    private List<LogicalLogRecord> buildMessages(int count) {
         return IntStream.range(0, count)
                 .mapToObj((i) -> constructLogicalLogMessage(TestMessages.Bar, i, "Hello"))
                 .collect(toList());
     }
 
-    private LogicalLogRecord<TestMessages> constructLogicalLogMessage(TestMessages message, Object... args) {
-        return new LogicalLogRecord<>(Instant.now(), emptyMap(), message, Optional.empty(), args);
+    private LogicalLogRecord constructLogicalLogMessage(TestMessages message, Object... args) {
+        return new LogicalLogRecord(Instant.now(), emptyMap(), message, Optional.empty(), args);
     }
 
     private Map<String, String> generateCorrelationIds() {

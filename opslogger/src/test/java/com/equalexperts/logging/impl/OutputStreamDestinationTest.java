@@ -16,11 +16,11 @@ public class OutputStreamDestinationTest {
 
     private final TestPrintStream output = new TestPrintStream();
     private final StackTraceProcessor processor = new SimpleStackTraceProcessor();
-    private final OutputStreamDestination<TestMessages> destination = new OutputStreamDestination<>(output, processor);
+    private final OutputStreamDestination destination = new OutputStreamDestination(output, processor);
 
     @Test
     public void publish_shouldPublishAFormattedLogRecord() throws Exception {
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(Instant.now(), null, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(Instant.now(), null, TestMessages.Foo, Optional.empty());
         String expectedMessage = record.format(processor) + System.getProperty("line.separator");
 
         destination.publish(record);

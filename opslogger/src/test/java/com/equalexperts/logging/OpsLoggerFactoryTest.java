@@ -54,10 +54,10 @@ public class OpsLoggerFactoryTest {
         OpsLogger<TestMessages> logger = new OpsLoggerFactory()
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         assertThat(basicLogger.getDestination(), instanceOf(OutputStreamDestination.class));
         assertEquals(OpsLoggerFactory.EMPTY_CORRELATION_ID_SUPPLIER, basicLogger.getCorrelationIdSupplier());
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) basicLogger.getDestination();
+        OutputStreamDestination destination = (OutputStreamDestination) basicLogger.getDestination();
         assertSame(System.out, destination.getOutput());
         assertThat(destination.getStackTraceProcessor(), instanceOf(SimpleStackTraceProcessor.class));
         ensureCorrectlyConfigured(basicLogger);
@@ -71,9 +71,9 @@ public class OpsLoggerFactoryTest {
                 .setDestination(expectedPrintStream)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         assertThat(basicLogger.getDestination(), instanceOf(OutputStreamDestination.class));
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) basicLogger.getDestination();
+        OutputStreamDestination destination = (OutputStreamDestination) basicLogger.getDestination();
         assertSame(expectedPrintStream, destination.getOutput());
         ensureCorrectlyConfigured(basicLogger);
     }
@@ -87,10 +87,10 @@ public class OpsLoggerFactoryTest {
                 .setPath(expectedPath)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         ensureCorrectlyConfigured(basicLogger);
 
-        PathDestination<TestMessages> destination = (PathDestination<TestMessages>) basicLogger.getDestination();
+        PathDestination destination = (PathDestination) basicLogger.getDestination();
         FileChannelProvider provider = destination.getProvider();
         assertSame(expectedPath, provider.getPath());
     }
@@ -142,9 +142,9 @@ public class OpsLoggerFactoryTest {
                 .setPath(logFile)
                 .build();
 
-        BasicOpsLogger<TestMessages> logger = (BasicOpsLogger<TestMessages>) result;
+        BasicOpsLogger logger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertThat(logger.getDestination(), instanceOf(PathDestination.class));
-        PathDestination<TestMessages> pd = (PathDestination<TestMessages>) logger.getDestination();
+        PathDestination pd = (PathDestination) logger.getDestination();
         assertTrue(OpsLoggerFactory.getRegistry().contains(pd));
     }
 
@@ -157,9 +157,9 @@ public class OpsLoggerFactoryTest {
                 .setAsync(true)
                 .build();
 
-        AsyncOpsLogger<TestMessages> logger = (AsyncOpsLogger<TestMessages>) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertThat(logger.getDestination(), instanceOf(PathDestination.class));
-        PathDestination<TestMessages> pd = (PathDestination<TestMessages>) logger.getDestination();
+        PathDestination pd = (PathDestination) logger.getDestination();
         assertTrue(OpsLoggerFactory.getRegistry().contains(pd));
     }
 
@@ -169,10 +169,10 @@ public class OpsLoggerFactoryTest {
                 .setAsync(true)
                 .build();
 
-        AsyncOpsLogger<TestMessages> logger = (AsyncOpsLogger<TestMessages>) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertThat(logger.getDestination(), instanceOf(OutputStreamDestination.class));
         assertEquals(OpsLoggerFactory.EMPTY_CORRELATION_ID_SUPPLIER, logger.getCorrelationIdSupplier());
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) logger.getDestination();
+        OutputStreamDestination destination = (OutputStreamDestination) logger.getDestination();
         assertSame(System.out, destination.getOutput());
         assertThat(destination.getStackTraceProcessor(), instanceOf(SimpleStackTraceProcessor.class));
         ensureCorrectlyConfigured(logger);
@@ -187,10 +187,10 @@ public class OpsLoggerFactoryTest {
                 .setAsync(true)
                 .build();
 
-        AsyncOpsLogger<TestMessages> logger = (AsyncOpsLogger<TestMessages>) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertThat(logger.getDestination(), instanceOf(OutputStreamDestination.class));
         assertEquals(OpsLoggerFactory.EMPTY_CORRELATION_ID_SUPPLIER, logger.getCorrelationIdSupplier());
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) logger.getDestination();
+        OutputStreamDestination destination = (OutputStreamDestination) logger.getDestination();
         assertSame(expectedPrintStream, destination.getOutput());
         assertThat(destination.getStackTraceProcessor(), instanceOf(SimpleStackTraceProcessor.class));
         ensureCorrectlyConfigured(logger);
@@ -221,10 +221,10 @@ public class OpsLoggerFactoryTest {
                 .setPath(expectedPath)
                 .build();
 
-        AsyncOpsLogger<TestMessages> logger = (AsyncOpsLogger<TestMessages>) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         ensureCorrectlyConfigured(logger);
 
-        PathDestination<TestMessages> destination = (PathDestination<TestMessages>) logger.getDestination();
+        PathDestination destination = (PathDestination) logger.getDestination();
         FileChannelProvider provider = destination.getProvider();
         assertSame(expectedPath, provider.getPath());
     }
@@ -315,8 +315,8 @@ public class OpsLoggerFactoryTest {
                 .setDestination(new PrintStream(new ByteArrayOutputStream()))
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        OutputStreamDestination destination = (OutputStreamDestination) basicLogger.getDestination();
         assertThat(destination.getStackTraceProcessor(), instanceOf(SimpleStackTraceProcessor.class));
     }
 
@@ -325,8 +325,8 @@ public class OpsLoggerFactoryTest {
         OpsLogger<TestMessages> logger = new OpsLoggerFactory()
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        OutputStreamDestination destination = (OutputStreamDestination) basicLogger.getDestination();
         assertThat(destination.getStackTraceProcessor(), instanceOf(SimpleStackTraceProcessor.class));
     }
 
@@ -339,8 +339,8 @@ public class OpsLoggerFactoryTest {
                 .setPath(logFile)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        PathDestination<TestMessages> destination = (PathDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        PathDestination destination = (PathDestination) basicLogger.getDestination();
         FilesystemStackTraceProcessor stackTraceProcessor = (FilesystemStackTraceProcessor) destination.getStackTraceProcessor();
 
         assertEquals(parent, stackTraceProcessor.getDestination());
@@ -355,8 +355,8 @@ public class OpsLoggerFactoryTest {
                 .setStoreStackTracesInFilesystem(false)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        PathDestination<TestMessages> destination = (PathDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        PathDestination destination = (PathDestination) basicLogger.getDestination();
         assertThat(destination.getStackTraceProcessor(), instanceOf(SimpleStackTraceProcessor.class));
     }
 
@@ -368,8 +368,8 @@ public class OpsLoggerFactoryTest {
                 .setStackTraceStoragePath(stackTraceStorage)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        OutputStreamDestination destination = (OutputStreamDestination) basicLogger.getDestination();
         FilesystemStackTraceProcessor processor = (FilesystemStackTraceProcessor) destination.getStackTraceProcessor();
         assertEquals(stackTraceStorage, processor.getDestination());
     }
@@ -420,7 +420,7 @@ public class OpsLoggerFactoryTest {
                 .setErrorHandler(expectedErrorHandler)
                 .build();
 
-        BasicOpsLogger basicLogger = (BasicOpsLogger) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         assertSame(expectedErrorHandler, basicLogger.getErrorHandler());
     }
 
@@ -430,7 +430,7 @@ public class OpsLoggerFactoryTest {
                 .setErrorHandler(null)
                 .build();
 
-        BasicOpsLogger basicLogger = (BasicOpsLogger) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         assertSame(OpsLoggerFactory.DEFAULT_ERROR_HANDLER, basicLogger.getErrorHandler());
     }
 
@@ -442,7 +442,7 @@ public class OpsLoggerFactoryTest {
                 .setCorrelationIdSupplier(expectedCorrelationIdSupplier)
                 .build();
 
-        BasicOpsLogger basicLogger = (BasicOpsLogger) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         assertSame(expectedCorrelationIdSupplier, basicLogger.getCorrelationIdSupplier());
     }
 
@@ -452,7 +452,7 @@ public class OpsLoggerFactoryTest {
                 .setCorrelationIdSupplier(null)
                 .build();
 
-        BasicOpsLogger basicLogger = (BasicOpsLogger) logger;
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
         assertSame(OpsLoggerFactory.EMPTY_CORRELATION_ID_SUPPLIER, basicLogger.getCorrelationIdSupplier());
     }
 
@@ -465,7 +465,7 @@ public class OpsLoggerFactoryTest {
                 .setAsync(true)
                 .build();
 
-        AsyncOpsLogger logger = (AsyncOpsLogger) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertSame(expectedErrorHandler, logger.getErrorHandler());
     }
 
@@ -476,7 +476,7 @@ public class OpsLoggerFactoryTest {
                 .setErrorHandler(null)
                 .build();
 
-        AsyncOpsLogger logger = (AsyncOpsLogger) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertSame(OpsLoggerFactory.DEFAULT_ERROR_HANDLER, logger.getErrorHandler());
     }
 
@@ -489,7 +489,7 @@ public class OpsLoggerFactoryTest {
                 .setAsync(true)
                 .build();
 
-        AsyncOpsLogger logger = (AsyncOpsLogger) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertSame(expectedCorrelationIdSupplier, logger.getCorrelationIdSupplier());
     }
 
@@ -500,7 +500,7 @@ public class OpsLoggerFactoryTest {
                 .setAsync(true)
                 .build();
 
-        AsyncOpsLogger logger = (AsyncOpsLogger) result;
+        AsyncOpsLogger logger = (AsyncOpsLogger) ((OpsLoggerBaseWrapper) result).getOpsLoggerBase();
         assertSame(OpsLoggerFactory.EMPTY_CORRELATION_ID_SUPPLIER, logger.getCorrelationIdSupplier());
     }
 
@@ -515,8 +515,8 @@ public class OpsLoggerFactoryTest {
                 .setStoreStackTracesInFilesystem(true)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        PathDestination<TestMessages> destination = (PathDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        PathDestination destination = (PathDestination) basicLogger.getDestination();
         FilesystemStackTraceProcessor processor = (FilesystemStackTraceProcessor) destination.getStackTraceProcessor();
         assertNotEquals(originalStackTraceDestination, processor.getDestination());
     }
@@ -525,14 +525,14 @@ public class OpsLoggerFactoryTest {
     public void setStoreStackTracesInFileSystem_shouldWorkIfItIsCalledBeforeAPathIsSet() throws Exception {
         Path parent = tempFiles.createTempDirectoryThatDoesNotExist();
 
-        OpsLogger<TestMessages> logger = new OpsLoggerFactory()
+        OpsLogger logger = new OpsLoggerFactory()
                 .setStoreStackTracesInFilesystem(true)
                 .setDestination(System.out)
                 .setStackTraceStoragePath(parent)
                 .build();
 
-        BasicOpsLogger<TestMessages> basicLogger = (BasicOpsLogger<TestMessages>) logger;
-        OutputStreamDestination<TestMessages> destination = (OutputStreamDestination<TestMessages>) basicLogger.getDestination();
+        BasicOpsLogger basicLogger = (BasicOpsLogger) ((OpsLoggerBaseWrapper) logger).getOpsLoggerBase();
+        OutputStreamDestination destination = (OutputStreamDestination) basicLogger.getDestination();
         FilesystemStackTraceProcessor processor = (FilesystemStackTraceProcessor) destination.getStackTraceProcessor();
         assertEquals(parent, processor.getDestination());
     }
@@ -680,13 +680,13 @@ public class OpsLoggerFactoryTest {
         verify(registry).refreshFileHandles();
     }
 
-    private void ensureCorrectlyConfigured(BasicOpsLogger<TestMessages> logger) {
+    private void ensureCorrectlyConfigured(BasicOpsLogger logger) {
         assertEquals(Clock.systemUTC(), logger.getClock());
         assertEquals(OpsLoggerFactory.DEFAULT_ERROR_HANDLER, logger.getErrorHandler());
         assertThat(logger.getLock(), instanceOf(ReentrantLock.class));
     }
 
-    private void ensureCorrectlyConfigured(AsyncOpsLogger<TestMessages> logger) {
+    private void ensureCorrectlyConfigured(AsyncOpsLogger logger) {
         assertEquals(Clock.systemUTC(), logger.getClock());
         assertEquals(OpsLoggerFactory.DEFAULT_ERROR_HANDLER, logger.getErrorHandler());
         assertThat(logger.getTransferQueue(), instanceOf(LinkedTransferQueue.class));

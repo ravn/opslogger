@@ -28,7 +28,7 @@ public class PathDestinationTest {
     private FileChannelProvider provider = mock(FileChannelProvider.class);
     private StackTraceProcessor processor = mock(StackTraceProcessor.class);
     private ActiveRotationRegistry registry = mock(ActiveRotationRegistry.class);
-    private PathDestination<TestMessages> destination = new PathDestination<>(provider, processor, registry);
+    private PathDestination destination = new PathDestination(provider, processor, registry);
 
     @Before
     public void setup() throws Exception {
@@ -48,7 +48,7 @@ public class PathDestinationTest {
 
     @Test
     public void publish_shouldFormatTheLogRecordAndWriteItToTheFile() throws Exception {
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(Instant.now(), null, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(Instant.now(), null, TestMessages.Foo, Optional.empty());
         record = spy(record); //use a spy so we can verify at the bottom
         destination.beginBatch();
 
@@ -61,7 +61,7 @@ public class PathDestinationTest {
 
     @Test
     public void publish_shouldNotFlushTheWriter() throws Exception {
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(Instant.now(), null, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(Instant.now(), null, TestMessages.Foo, Optional.empty());
         destination.beginBatch();
 
         destination.publish(record);
@@ -143,7 +143,7 @@ public class PathDestinationTest {
 
     @Test
     public void refreshFileHandles_shouldReturnImmediately_whenTheDestinationIsNotCurrentlyInUse() throws Exception {
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(Instant.now(), null, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(Instant.now(), null, TestMessages.Foo, Optional.empty());
         destination.beginBatch();
         destination.publish(record);
         destination.endBatch();

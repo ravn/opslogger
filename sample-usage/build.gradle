@@ -28,4 +28,6 @@ task generateLoggingDocumentation {
 }
 assemble.dependsOn(generateLoggingDocumentation)
 
+apply from: rootProject.file("bintray-support.gradle")
+
 idea.springFacets << 'src/main/resources/applicationContext.xml'

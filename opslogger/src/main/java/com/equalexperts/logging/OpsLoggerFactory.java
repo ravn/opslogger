@@ -31,6 +31,8 @@ public class OpsLoggerFactory {
     private Optional<Path> stackTraceStoragePath = Optional.empty();
     private Optional<Consumer<Throwable>> errorHandler = Optional.empty();
     private Optional<Supplier<Map<String,String>>> correlationIdSupplier = Optional.empty();
+    private boolean buildCalled = false;
+    private OpsLoggerBase opsLogger = null;
 
     /**
      * The destination for the log strings. A typical value is System.out.
@@ -151,13 +153,21 @@ public class OpsLoggerFactory {
      * @throws IOException if a problem occurs creating parent directories for log files and/or stack traces
      */
     public <T extends Enum<T> & LogMessage> OpsLogger<T> build() throws IOException {
+        if (buildCalled == false) {
+            opsLogger = build0();
+            buildCalled = true;
+        }
+        return new OpsLoggerBaseWrapper<>(opsLogger);
+    }
+
+    public OpsLoggerBase build0() throws IOException {
         Supplier<Map<String,String>> correlationIdSupplier = this.correlationIdSupplier.orElse(EMPTY_CORRELATION_ID_SUPPLIER);
         Consumer<Throwable> errorHandler = this.errorHandler.orElse(DEFAULT_ERROR_HANDLER);
-        Destination<T> destination = configureDestination();
+        Destination destination = configureDestination();
         if (async) {
-            return new AsyncOpsLogger<>(Clock.systemUTC(), correlationIdSupplier, destination, errorHandler, new LinkedTransferQueue<>(), new AsyncExecutor(Executors.defaultThreadFactory()));
+            return new AsyncOpsLogger(Clock.systemUTC(), correlationIdSupplier, destination, errorHandler, new LinkedTransferQueue<>(), new AsyncExecutor(Executors.defaultThreadFactory()));
         }
-        return new BasicOpsLogger<>(Clock.systemUTC(), correlationIdSupplier, destination, new ReentrantLock(), errorHandler);
+        return new BasicOpsLogger(Clock.systemUTC(), correlationIdSupplier, destination, new ReentrantLock(), errorHandler);
     }
 
     /**
@@ -173,16 +183,16 @@ public class OpsLoggerFactory {
         registry.refreshFileHandles();
     }
 
-    private <T extends Enum<T> & LogMessage> Destination<T> configureDestination() throws IOException {
+    private Destination configureDestination() throws IOException {
         StackTraceProcessor stackTraceProcessor = configureStackTraceProcessor();
         if (logfilePath.isPresent()) {
             if (!Files.isSymbolicLink(logfilePath.get().getParent())) {
                 Files.createDirectories(logfilePath.get().getParent());
             }
             FileChannelProvider provider = new FileChannelProvider(logfilePath.get());
-            return registry.add(new PathDestination<>(provider, stackTraceProcessor, registry));
+            return registry.add(new PathDestination(provider, stackTraceProcessor, registry));
         }
-        return new OutputStreamDestination<>(loggerOutput.orElse(System.out), stackTraceProcessor);
+        return new OutputStreamDestination(loggerOutput.orElse(System.out), stackTraceProcessor);
     }
 
     private StackTraceProcessor configureStackTraceProcessor() throws IOException {
@@ -243,4 +253,6 @@ public class OpsLoggerFactory {
     static void setRegistry(ActiveRotationRegistry newRegistry) {
         registry = newRegistry;
     }
+
+    
 }

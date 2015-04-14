@@ -22,18 +22,18 @@ import static org.mockito.Mockito.*;
 
 public class BasicOpsLoggerTest {
     private Clock fixedClock = Clock.fixed(Instant.parse("2014-02-01T14:57:12.500Z"), ZoneOffset.UTC);
-    @Mock private Destination<TestMessages> destination;
+    @Mock private Destination destination;
     @Mock private Supplier<Map<String,String>> correlationIdSupplier;
     @Mock private Consumer<Throwable> exceptionConsumer;
     @Mock private Lock lock;
-    @Captor private ArgumentCaptor<LogicalLogRecord<TestMessages>> captor;
+    @Captor private ArgumentCaptor<LogicalLogRecord> captor;
 
-    private OpsLogger<TestMessages> logger;
+    private OpsLoggerBase logger;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        logger = new BasicOpsLogger<>(fixedClock, correlationIdSupplier, destination, lock, exceptionConsumer);
+        logger = new BasicOpsLogger(fixedClock, correlationIdSupplier, destination, lock, exceptionConsumer);
     }
 
     @Test
@@ -48,7 +48,7 @@ public class BasicOpsLoggerTest {
         verify(correlationIdSupplier).get();
         verifyNoMoreInteractions(correlationIdSupplier);
 
-        LogicalLogRecord<TestMessages> record = captor.getValue();
+        LogicalLogRecord record = captor.getValue();
         assertEquals(fixedClock.instant(), record.getTimestamp());
         assertEquals(expectedCorrelationIds, record.getCorrelationIds());
         assertEquals(TestMessages.Bar, record.getMessage());
@@ -139,7 +139,7 @@ public class BasicOpsLoggerTest {
         verify(correlationIdSupplier).get();
         verifyNoMoreInteractions(correlationIdSupplier);
 
-        LogicalLogRecord<TestMessages> record = captor.getValue();
+        LogicalLogRecord record = captor.getValue();
         assertEquals(fixedClock.instant(), record.getTimestamp());
         assertEquals(expectedCorrelationIds, record.getCorrelationIds());
         assertEquals(TestMessages.Bar, record.getMessage());

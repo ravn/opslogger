@@ -23,7 +23,7 @@ public class LogicalLogRecordTest {
     @Test
     public void constructor_shouldThrowANullPointerException_givenANullTimestamp() throws Exception {
         try {
-            new LogicalLogRecord<>(null, NO_CORRELATION_IDS, TestMessages.Foo, Optional.empty());
+            new LogicalLogRecord(null, NO_CORRELATION_IDS, TestMessages.Foo, Optional.empty());
             fail("expected an exception");
         } catch (NullPointerException e) {
             assertThat(e.getMessage(), containsString("parameter timestamp"));
@@ -33,7 +33,7 @@ public class LogicalLogRecordTest {
     @Test
     public void constructor_shouldThrowANullPointerException_givenANullMessage() throws Exception {
         try {
-            new LogicalLogRecord<TestMessages>(Instant.now(), NO_CORRELATION_IDS, null, Optional.empty());
+            new LogicalLogRecord(Instant.now(), NO_CORRELATION_IDS, null, Optional.empty());
             fail("expected an exception");
         } catch (NullPointerException e) {
             assertThat(e.getMessage(), containsString("parameter message"));
@@ -43,7 +43,7 @@ public class LogicalLogRecordTest {
     @Test
     public void constructor_shouldThrowANullPointerException_givenANullCause() throws Exception {
         try {
-            new LogicalLogRecord<>(Instant.now(), NO_CORRELATION_IDS, TestMessages.Foo, null);
+            new LogicalLogRecord(Instant.now(), NO_CORRELATION_IDS, TestMessages.Foo, null);
             fail("expected an exception");
         } catch (NullPointerException e) {
             assertThat(e.getMessage(), containsString("parameter cause"));
@@ -53,7 +53,7 @@ public class LogicalLogRecordTest {
     @Test
     public void constructor_shouldThrowANullPointerException_givenNullDetails() throws Exception {
         try {
-            new LogicalLogRecord<>(Instant.now(), NO_CORRELATION_IDS, TestMessages.Foo, Optional.empty(), (Object[]) null);
+            new LogicalLogRecord(Instant.now(), NO_CORRELATION_IDS, TestMessages.Foo, Optional.empty(), (Object[]) null);
             fail("expected an exception");
         } catch (NullPointerException e) {
             assertThat(e.getMessage(), containsString("parameter details"));
@@ -66,7 +66,7 @@ public class LogicalLogRecordTest {
         //put 10 random entries in to be sure the map is in insertion order
         range(0, 10).forEach(i -> correlationIds.put(randomUUID().toString(), valueOf(i)));
 
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(Instant.now(), correlationIds, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(Instant.now(), correlationIds, TestMessages.Foo, Optional.empty());
 
         assertNotSame(correlationIds, record.getCorrelationIds());
         assertNotEquals(correlationIds.getClass(), record.getCorrelationIds().getClass());
@@ -80,7 +80,7 @@ public class LogicalLogRecordTest {
     @Test
     public void format_shouldProduceAnAppropriatelyFormattedMessage() throws Exception {
         Instant instant = Instant.parse("2014-04-01T13:37:00.123Z");
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, NO_CORRELATION_IDS, TestMessages.Bar, Optional.empty(), 42);
+        LogicalLogRecord record = new LogicalLogRecord(instant, NO_CORRELATION_IDS, TestMessages.Bar, Optional.empty(), 42);
 
         String result = record.format(PROCESSOR_SHOULD_NOT_BE_CALLED);
 
@@ -90,7 +90,7 @@ public class LogicalLogRecordTest {
     @Test
     public void format_shouldIncludeMilliseconds_whenTheTimestampIsAnEvenSecond() throws Exception {
         Instant instant = Instant.parse("2014-04-01T13:37:00.000Z");
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, NO_CORRELATION_IDS, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(instant, NO_CORRELATION_IDS, TestMessages.Foo, Optional.empty());
 
         String result = record.format(PROCESSOR_SHOULD_NOT_BE_CALLED);
 
@@ -101,7 +101,7 @@ public class LogicalLogRecordTest {
     public void format_shouldProduceAnAppropriatelyFormattedMessage_givenAThrowable() throws Exception {
         Instant instant = Instant.parse("2014-04-01T13:37:00.123Z");
         Throwable expectedThrowable = new RuntimeException();
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, NO_CORRELATION_IDS, TestMessages.Bar, Optional.of(expectedThrowable), 42);
+        LogicalLogRecord record = new LogicalLogRecord(instant, NO_CORRELATION_IDS, TestMessages.Bar, Optional.of(expectedThrowable), 42);
 
         StackTraceProcessor processor = (t, out) -> {
             assertSame(expectedThrowable, t);
@@ -118,7 +118,7 @@ public class LogicalLogRecordTest {
         Instant instant = Instant.parse("2014-04-01T13:37:00.123Z");
         Map<String, String> correlationIds = new HashMap<>();
         correlationIds.put("user", "joeUser");
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, correlationIds, TestMessages.Bar, Optional.empty(), 42);
+        LogicalLogRecord record = new LogicalLogRecord(instant, correlationIds, TestMessages.Bar, Optional.empty(), 42);
 
         String result = record.format(PROCESSOR_SHOULD_NOT_BE_CALLED);
 
@@ -128,7 +128,7 @@ public class LogicalLogRecordTest {
     @Test
     public void format_shouldTreatNullCorrelationIdsLikeAnEmptyMapOfCorrelationIds() throws Exception {
         Instant instant = Instant.parse("2014-04-01T13:37:00.123Z");
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, null, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(instant, null, TestMessages.Foo, Optional.empty());
 
         String result = record.format(PROCESSOR_SHOULD_NOT_BE_CALLED);
 
@@ -142,7 +142,7 @@ public class LogicalLogRecordTest {
         correlationIds.put("user", "joeUser");
         correlationIds.put("foo", null);
         correlationIds.put("bar", "");
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, correlationIds, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(instant, correlationIds, TestMessages.Foo, Optional.empty());
 
         String result = record.format(PROCESSOR_SHOULD_NOT_BE_CALLED);
 
@@ -155,7 +155,7 @@ public class LogicalLogRecordTest {
         Map<String, String> correlationIds = new LinkedHashMap<>();
         correlationIds.put("user", "joeUser");
         correlationIds.put("foo", "bar");
-        LogicalLogRecord<TestMessages> record = new LogicalLogRecord<>(instant, correlationIds, TestMessages.Foo, Optional.empty());
+        LogicalLogRecord record = new LogicalLogRecord(instant, correlationIds, TestMessages.Foo, Optional.empty());
 
         String result = record.format(PROCESSOR_SHOULD_NOT_BE_CALLED);
 

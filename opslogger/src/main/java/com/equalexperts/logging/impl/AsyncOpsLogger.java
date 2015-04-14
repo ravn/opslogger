@@ -22,17 +22,17 @@ import static java.util.stream.Collectors.toList;
  * A background thread is responsible for emptying the transferQueue.
  */
 
-public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger<T> {
+public class AsyncOpsLogger implements OpsLoggerBase {
 
     static final int MAX_BATCH_SIZE = 100;
     private final Future<?> processingThread;
-    private final LinkedTransferQueue<Optional<LogicalLogRecord<T>>> transferQueue;
+    private final LinkedTransferQueue<Optional<LogicalLogRecord>> transferQueue;
     private final Clock clock;
     private final Supplier<Map<String, String>> correlationIdSupplier;
-    private final Destination<T> destination;
+    private final Destination destination;
     private final Consumer<Throwable> errorHandler;
 
-    public AsyncOpsLogger(Clock clock, Supplier<Map<String, String>> correlationIdSupplier, Destination<T> destination, Consumer<Throwable> errorHandler, LinkedTransferQueue<Optional<LogicalLogRecord<T>>> transferQueue, AsyncExecutor executor) {
+    public AsyncOpsLogger(Clock clock, Supplier<Map<String, String>> correlationIdSupplier, Destination destination, Consumer<Throwable> errorHandler, LinkedTransferQueue<Optional<LogicalLogRecord>> transferQueue, AsyncExecutor executor) {
         this.clock = clock;
         this.correlationIdSupplier = correlationIdSupplier;
         this.destination = destination;
@@ -42,9 +42,9 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
     }
 
     @Override
-    public void log(T message, Object... details) {
+    public void log(LogMessage message, Object... details) {
         try {
-            LogicalLogRecord<T> record = new LogicalLogRecord<>(clock.instant(), correlationIdSupplier.get(), message, Optional.empty(), details);
+            LogicalLogRecord record = new LogicalLogRecord(clock.instant(), correlationIdSupplier.get(), message, Optional.empty(), details);
             transferQueue.put(Optional.of(record));
         } catch (Throwable t) {
             errorHandler.accept(t);
@@ -52,9 +52,9 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
     }
 
     @Override
-    public void log(T message, Throwable cause, Object... details) {
+    public void log(LogMessage message, Throwable cause, Object... details) {
         try {
-            LogicalLogRecord<T> record = new LogicalLogRecord<>(clock.instant(), correlationIdSupplier.get(), message, Optional.of(cause), details);
+            LogicalLogRecord record = new LogicalLogRecord(clock.instant(), correlationIdSupplier.get(), message, Optional.of(cause), details);
             transferQueue.put(Optional.of(record));
         } catch (Throwable t) {
             errorHandler.accept(t);
@@ -78,8 +78,8 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
         boolean run = true;
         do {
             try {
-                List<Optional<LogicalLogRecord<T>>> messages = waitForNextBatch();
-                List<LogicalLogRecord<T>> logRecords = messages.stream()
+                List<Optional<LogicalLogRecord>> messages = waitForNextBatch();
+                List<LogicalLogRecord> logRecords = messages.stream()
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(toList());
@@ -94,12 +94,12 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
         } while (run);
     }
 
-    private void processBatch(List<LogicalLogRecord<T>> batch) throws Exception {
+    private void processBatch(List<LogicalLogRecord> batch) throws Exception {
         if (batch.isEmpty()) {
             return;
         }
         destination.beginBatch();
-        for (LogicalLogRecord<T> record : batch) {
+        for (LogicalLogRecord record : batch) {
             try {
                 destination.publish(record);
             } catch (Throwable t) {
@@ -109,8 +109,8 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
         destination.endBatch();
     }
 
-    private List<Optional<LogicalLogRecord<T>>> waitForNextBatch() throws InterruptedException {
-        List<Optional<LogicalLogRecord<T>>> result = new ArrayList<>();
+    private List<Optional<LogicalLogRecord>> waitForNextBatch() throws InterruptedException {
+        List<Optional<LogicalLogRecord>> result = new ArrayList<>();
         result.add(transferQueue.take()); //a blocking operation
         transferQueue.drainTo(result, MAX_BATCH_SIZE - 1);
         return result;
@@ -120,7 +120,7 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
         return clock;
     }
 
-    public Destination<T> getDestination() {
+    public Destination getDestination() {
         return destination;
     }
 
@@ -132,7 +132,7 @@ public class AsyncOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
         return errorHandler;
     }
 
-    public LinkedTransferQueue<Optional<LogicalLogRecord<T>>> getTransferQueue() {
+    public LinkedTransferQueue<Optional<LogicalLogRecord>> getTransferQueue() {
         return transferQueue;
     }
 }

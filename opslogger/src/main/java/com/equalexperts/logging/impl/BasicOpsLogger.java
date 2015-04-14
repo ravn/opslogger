@@ -12,14 +12,14 @@ import java.util.function.Supplier;
 
 /** OpsLogger which writes each entry directly to the Destination */
 
-public class BasicOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger<T> {
+public class BasicOpsLogger implements OpsLoggerBase {
     private final Clock clock;
     private final Consumer<Throwable> errorHandler;
-    private final Destination<T> destination;
+    private final Destination destination;
     private final Lock lock;
     private final Supplier<Map<String,String>> correlationIdSupplier;
 
-    public BasicOpsLogger(Clock clock, Supplier<Map<String, String>> correlationIdSupplier, Destination<T> destination, Lock lock, Consumer<Throwable> errorHandler) {
+    public BasicOpsLogger(Clock clock, Supplier<Map<String, String>> correlationIdSupplier, Destination destination, Lock lock, Consumer<Throwable> errorHandler) {
         this.clock = clock;
         this.correlationIdSupplier = correlationIdSupplier;
         this.destination = destination;
@@ -33,9 +33,9 @@ public class BasicOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
     }
 
     @Override
-    public void log(T message, Object... details) {
+    public void log(LogMessage message, Object... details) {
         try {
-            LogicalLogRecord<T> record = constructLogRecord(message, Optional.empty(), details);
+            LogicalLogRecord record = constructLogRecord(message, Optional.empty(), details);
             publish(record);
         } catch (Throwable t) {
             errorHandler.accept(t);
@@ -43,20 +43,20 @@ public class BasicOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
     }
 
     @Override
-    public void log(T message, Throwable cause, Object... details) {
+    public void log(LogMessage message, Throwable cause, Object... details) {
         try {
-            LogicalLogRecord<T> record = constructLogRecord(message, Optional.of(cause), details);
+            LogicalLogRecord record = constructLogRecord(message, Optional.of(cause), details);
             publish(record);
         } catch (Throwable t) {
             errorHandler.accept(t);
         }
     }
 
-    private LogicalLogRecord<T> constructLogRecord(T message, Optional<Throwable> o, Object... details) {
-        return new LogicalLogRecord<>(clock.instant(), correlationIdSupplier.get(), message, o, details);
+    private LogicalLogRecord constructLogRecord(LogMessage message, Optional<Throwable> o, Object... details) {
+        return new LogicalLogRecord(clock.instant(), correlationIdSupplier.get(), message, o, details);
     }
 
-    private void publish(LogicalLogRecord<T> record) throws Exception {
+    private void publish(LogicalLogRecord record) throws Exception {
         lock.lock();
         try {
             destination.beginBatch();
@@ -74,7 +74,7 @@ public class BasicOpsLogger<T extends Enum<T> & LogMessage> implements OpsLogger
         return clock;
     }
 
-    public Destination<T> getDestination() {
+    public Destination getDestination() {
         return destination;
     }
 

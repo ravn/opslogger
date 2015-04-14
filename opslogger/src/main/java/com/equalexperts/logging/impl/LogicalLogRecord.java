@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class LogicalLogRecord<T extends Enum<T> & LogMessage> {
+public class LogicalLogRecord {
 
     private static final DateTimeFormatter ISO_ALWAYS_WITH_MILLISECONDS = new DateTimeFormatterBuilder()
             .parseStrict()
@@ -17,12 +17,12 @@ public class LogicalLogRecord<T extends Enum<T> & LogMessage> {
             .toFormatter();
 
     private final Instant timestamp;
-    private final T message;
+    private final LogMessage message;
     private final Optional<Throwable> cause;
     private final Object[] details;
     private final Map<String,String> correlationIds;
 
-    public LogicalLogRecord(Instant timestamp, Map<String,String> correlationIds, T message, Optional<Throwable> cause, Object... details) {
+    public LogicalLogRecord(Instant timestamp, Map<String,String> correlationIds, LogMessage message, Optional<Throwable> cause, Object... details) {
         this.timestamp = Objects.requireNonNull(timestamp, "parameter timestamp must not be null");
         this.correlationIds = makeSafeCopy(correlationIds);
         this.message = Objects.requireNonNull(message, "parameter message must not be null");
@@ -74,7 +74,7 @@ public class LogicalLogRecord<T extends Enum<T> & LogMessage> {
         return correlationIds;
     }
 
-    T getMessage() {
+    LogMessage getMessage() {
         return message;
     }
 

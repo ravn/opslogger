@@ -40,6 +40,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setDestination(PrintStream printStream) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         validateParametersForSetDestination(printStream);
         loggerOutput = Optional.of(printStream);
         logfilePath = Optional.empty();
@@ -53,6 +56,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setPath(Path path) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         validateParametersForSetPath(path);
         logfilePath = Optional.of(path).map(Path::toAbsolutePath);
         loggerOutput = Optional.empty();
@@ -67,6 +73,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setStoreStackTracesInFilesystem(boolean store) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         storeStackTracesInFilesystem = Optional.of(store);
         if (!store) {
             stackTraceStoragePath = Optional.empty();
@@ -83,6 +92,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setStackTraceStoragePath(Path directory) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         validateParametersForSetStackTraceStoragePath(directory);
         setStoreStackTracesInFilesystem(true);
         stackTraceStoragePath = Optional.of(directory);
@@ -99,6 +111,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setErrorHandler(Consumer<Throwable> handler) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         errorHandler = Optional.ofNullable(handler);
         return this;
     }
@@ -120,6 +135,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setCorrelationIdSupplier(Supplier<Map<String,String>> supplier) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         this.correlationIdSupplier = Optional.ofNullable(supplier);
         return this;
     }
@@ -141,6 +159,9 @@ public class OpsLoggerFactory {
      * @return <code>this</code> for further configuration
      */
     public OpsLoggerFactory setAsync(boolean async) {
+        if (buildCalled) {
+            throw new IllegalStateException("build() called");
+        }
         this.async = async;
         return this;
     }

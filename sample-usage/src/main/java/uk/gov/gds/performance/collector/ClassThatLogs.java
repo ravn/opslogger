@@ -3,19 +3,19 @@ package uk.gov.gds.performance.collector;
 import com.equalexperts.logging.OpsLogger;
 
 public class ClassThatLogs {
-    private final OpsLogger<CollectorLogMessage> logger;
+    private final OpsLogger<CollectorLogMessages> logger;
 
-    public ClassThatLogs(OpsLogger<CollectorLogMessage> logger) {
+    public ClassThatLogs(OpsLogger<CollectorLogMessages> logger) {
         this.logger = logger;
     }
 
     public void foo() {
-        logger.log(CollectorLogMessage.Success, 42);
+        logger.log(CollectorLogMessages.SUCCESS, 42);
     }
 
     public void bar() {
         RuntimeException e = new RuntimeException();
-        logger.log(CollectorLogMessage.UnknownError, e);
+        logger.log(CollectorLogMessages.UNKNOWN_ERROR, e);
         throw e;
     }
 

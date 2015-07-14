@@ -6,13 +6,15 @@ import dagger.Module;
 import dagger.ObjectGraph;
 import dagger.Provides;
 
+import javax.inject.Singleton;
 import java.nio.file.Paths;
 
 public class DaggerMain {
     @Module(injects=ClassThatLogs.class)
     public static class SampleApplicationModule {
         @Provides
-        OpsLogger<CollectorLogMessage> logger() {
+        @Singleton
+        OpsLogger<CollectorLogMessages> logger() {
             return new OpsLoggerFactory()
                     .setDestination(System.out)
                     .setStackTraceStoragePath(Paths.get("/tmp/stacktraces"))
@@ -20,7 +22,7 @@ public class DaggerMain {
         }
 
         @Provides
-        ClassThatLogs classThatLogs(OpsLogger<CollectorLogMessage> logger) {
+        ClassThatLogs classThatLogs(OpsLogger<CollectorLogMessages> logger) {
             return new ClassThatLogs(logger);
         }
     }
